@@ -11,7 +11,9 @@ export default function Student() {
     useEffect(() => {
         dispatch(getAlll({ currentPage, limit }))
     }, [currentPage])
+    const state = useSelector((state) => state)
     const {totalPages,students}=useSelector((state)=>state.student)
+    console.log(state)
     const handlePageClick=(event)=>{
         setCurrentPage(event.selected)
     }

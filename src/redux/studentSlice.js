@@ -3,12 +3,15 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import StudentPage from '../pages/student/StudentPage';
 
-const BASE_URL = 'http://localhost:8080/api/v1/admin';
+const BASE_URL = 'http://localhost:8080/api/v1/student';
 
 export const getAlll=createAsyncThunk("student/getAll",async ({currentPage,limit},thunkAPI)=>{
-    const url=BASE_URL+`/student/list?page=${currentPage}&size=${limit}`;
+    const url=BASE_URL;
+    ///list?page=${currentPage}&size=${limit}
     try{
         const response=await axios.get(url);
+        console.log("respose: ");
+        console.log(response);
         return response.data;
     }
     catch (error){
@@ -19,7 +22,7 @@ const studentSlice=createSlice({
     name:"student",
     initialState:{
         students:null,
-        totalPages:10
+        totalPages:0
     },
     reducers:{
 
@@ -27,8 +30,8 @@ const studentSlice=createSlice({
     extraReducers:(builder)=>{
         builder
         .addCase(getAlll.fulfilled,(state,action)=>{
-            state.students=action.payload.data.studentResonseList
-            state.totalPages=action.payload.data.totalPages
+            state.students=action.payload.data
+            //state.totalPages=action.payload.data.totalPages
         });
     }
 })
