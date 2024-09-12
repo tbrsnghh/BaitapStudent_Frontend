@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";  
 import { Button, Container, Table, Alert } from "reactstrap";  
 import { useDispatch, useSelector } from "react-redux";  
-import { deleteStudent, getAlll, resetStatusAndMessage } from "../../redux/studentSlice";  
+import { deleteStudent, getAll, resetStatusAndMessage, editStudent, getAllPage } from "../../redux/studentSlice";  
 import ReactPaginate from "react-paginate";  
+import EditStudentModal from "../edit/EditStudentModal";
+import Search from "../search/Search";
+
 
 export default function Student() {  
-  const [currentPage, setCurrentPage] = useState(0);  
-  const [showMessage, setShowMessage] = useState(false); // Local state to control message visibility  
-  const limit = 5;  
-  const dispatch = useDispatch();  
+  const [currentPage, setCurrentPage] = useState(0); 
+  const limit = 5; 
+  const [showMessage, setShowMessage] = useState(false);  
+  const [modal, setModal] = useState(false);  
+  const [editStudentData, setEditStudentData] = useState(
+    { id: '', ten: '', thanhpho: '', ngsinh: '', xepLoai: '' });  
   
-  const { totalPages, students, status, message } = useSelector((state) => state.student);  
+  const dispatch = useDispatch();  
+
+  const { totalPages,students, status, message } = useSelector((state) => state.student);  
 
   useEffect(() => {  
-    dispatch(getAlll({ currentPage, limit }));  
+    dispatch(getAllPage({ currentPage, limit }));  
   }, [currentPage, dispatch]);  
 
   useEffect(() => {  
@@ -21,7 +28,7 @@ export default function Student() {
       setShowMessage(true);  
       const timer = setTimeout(() => {  
         setShowMessage(false);  
-        dispatch(resetStatusAndMessage()); // Reset status and message  
+        dispatch(resetStatusAndMessage());  
       }, 2000);  
       return () => clearTimeout(timer);  
     }  
@@ -35,8 +42,27 @@ export default function Student() {
     dispatch(deleteStudent(id));  
   };  
 
+  const toggleModal = () => setModal(!modal);  
+
+  const handleEditClick = (student) => { 
+    setEditStudentData(student);  
+    toggleModal();  
+  };   
+
+  const handleEditChange = (e) => {  
+    setEditStudentData({ ...editStudentData, [e.target.name]: e.target.value });  
+  };  
+
+  const handleEditSubmit = (e) => {  
+    e.preventDefault();  
+    dispatch(editStudent({ id: editStudentData.id, student: editStudentData }));  
+    toggleModal();  
+  };  
+
   return (  
     <Container>  
+      <Search 
+      />
       {showMessage && (  
         <Alert color={status === 200 ? "success" : "danger"}>  
           {message}  
@@ -47,9 +73,12 @@ export default function Student() {
         <thead>  
           <tr>  
             <th>#</th>  
+            <th>ID</th>  
             <th>Tên sinh viên</th>  
             <th>Thành phố</th>  
-            <th>Delete</th>  
+            <th>Ngày sinh</th>  
+            <th>Xếp loại</th>  
+            <th>Actions</th>  
           </tr>  
         </thead>  
         <tbody>  
@@ -57,13 +86,22 @@ export default function Student() {
             students.map((item, index) => (  
               <tr key={index}>  
                 <td>{index + 1}</td>  
+                <td>{item.id}</td>  
                 <td>{item.ten}</td>  
-                <td>{item.thanhPho}</td>  
+                <td>{item.thanhpho}</td>  
+                <td>{item.ngsinh}</td>  
+                <td>{item.xepLoai}</td>   
                 <td>  
+                  <Button  
+                    className="btn btn-warning"  
+                    onClick={() => handleEditClick(item)}  
+                  >  
+                    <i class="fa-solid fa-pen-to-square"></i>  
+                  </Button>  
                   <Button  
                     className="btn btn-danger"  
                     onClick={() => {  
-                      if (window.confirm("Are you sure you want to delete this student?")) {  
+                      if (window.confirm("Bạn có chắc muốn xóa?")) {  
                         handleDeleteStudent(item.id);  
                       }  
                     }}  
@@ -94,6 +132,14 @@ export default function Student() {
         breakLinkClassName={"page-link"}  
         activeClassName={"active"}  
       />  
+
+      <EditStudentModal 
+        isOpen={modal}
+        toggleModal={toggleModal}
+        editStudentData={editStudentData}
+        handleEditChange={handleEditChange}
+        handleEditSubmit={handleEditSubmit}
+      />
     </Container>  
   );  
 }
